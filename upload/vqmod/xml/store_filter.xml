@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+  <id>Multi Shop Product Filter</id>
+  <version>1.0</version>
+  <vqmver>2.2.1</vqmver>
+  <author>Jason Clark (mithereal@gmail.com)</author>
+  
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  public function index() {
+		  ]]></search>
+      <add><![CDATA[
+		  $this->language->load('module/store_filter');
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  if (isset($this->request->get['sort'])) {
+		  ]]></search>
+      <add><![CDATA[
+		  if (isset($this->request->get['filter_store'])) {
+			$filter_store = $this->request->get['filter_store'];
+		} else {
+			$filter_store = null;
+		}
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  'filter_status'   => $filter_status,
+		  ]]></search>
+      <add><![CDATA[
+		  'filter_store'   => $filter_store,
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  'price'      => $result['price'],
+		  ]]></search>
+      <add><![CDATA[
+		  'store'      => $result['store'],
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  $this->data['column_status'] = $this->language->get('column_status');
+		  ]]></search>
+      <add><![CDATA[
+		  $this->data['column_store'] = $this->language->get('column_store');
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  if ($order == 'ASC') {
+		  ]]></search>
+      <add><![CDATA[
+		  if (isset($this->request->get['filter_store'])) {
+			$url .= '&filter_store=' . $this->request->get['filter_store'];
+		}
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  if (isset($this->request->get['order'])) {
+		  ]]></search>
+      <add><![CDATA[
+		  if (isset($this->request->get['store'])) {
+			$url .= '&store=' . $this->request->get['store'];
+		}
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  $this->data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_order' . $url, 'SSL');
+		  ]]></search>
+      <add><![CDATA[
+		  $this->data['sort_store'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_store' . $url, 'SSL');
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  $this->data['filter_status'] = $filter_status;
+		  ]]></search>
+      <add><![CDATA[
+		  $this->data['filter_store'] = $filter_store;
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  $this->data['entry_description'] = $this->language->get('entry_description');
+		  ]]></search>
+      <add><![CDATA[
+		 $this->data['entry_store'] = $this->language->get('entry_store');
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  if (isset($this->request->post['keyword'])) {
+		  ]]></search>
+      <add><![CDATA[
+		 $this->load->model('setting/store');
+		 $this->data['stores'] = $this->model_setting_store->getStores();
+		 if (isset($this->request->post['product_store'])) {
+			$this->data['product_store'] = $this->request->post['product_store'];
+		} elseif (isset($this->request->get['product_id'])) {
+			$this->data['product_store'] = $this->model_catalog_product->getProductStores($this->request->get['product_id']);
+		} else {
+			$this->data['product_store'] = array(0);
+		}	
+		  ]]></add>
+    </operation>
+  </file>
+  
+  <file name="admin/view//template/catalog/product_list.tpl">        
+    <operation>
+      <search position="before"><![CDATA[
+		  <td class="right"><?php echo $column_action; ?></td>
+		  ]]></search>
+      <add><![CDATA[
+		 <td class="left"><?php if ($sort == 'p.store') { ?>
+                <a href="<?php echo $sort_store; ?>" class="<?php echo strtolower($order); ?>"><?php echo $column_store; ?></a>
+                <?php } else { ?>
+                <a href="<?php echo $sort_store; ?>"><?php echo $column_store; ?></a>
+                <?php } ?></td>
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/view//template/catalog/product_list.tpl">        
+    <operation>
+      <search position="before"><![CDATA[
+		 <td align="right"><a onclick="filter();" class="button"><?php echo $button_filter; ?></a></td>
+		  ]]></search>
+      <add><![CDATA[
+		<td><select name="filter_store">
+                  <option value="*"></option>
+                  <?php if ($filter_store) { ?>
+                  <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
+                  <?php } else { ?>
+                  <option value="1"><?php echo $text_enabled; ?></option>
+                  <?php } ?>
+                  <?php if (!is_null($filter_status) && !$filter_status) { ?>
+                  <option value="0" selected="selected"><?php echo $text_disabled; ?></option>
+                  <?php } else { ?>
+                  <option value="0"><?php echo $text_disabled; ?></option>
+                  <?php } ?>
+                </select></td>
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/view//template/catalog/product_list.tpl">        
+    <operation>
+      <search position="after"><![CDATA[
+		 <td class="left"><?php echo $product['status']; ?></td>
+		  ]]></search>
+      <add><![CDATA[
+		<td class="left"><?php echo $product['store']; ?></td>
+		  ]]></add>
+    </operation>
+  </file>
+
+
+</modification>
