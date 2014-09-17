@@ -153,7 +153,7 @@
 		  ]]></search>
       <add><![CDATA[
 		<td><select name="filter_store">
-                  <option value="*"></option>
+                  <option value="*">*</option>
                   <?php 
 					  foreach ($stores as $store) {
 						  if ($filter_store && $filter_store == $store['store_id']) { 
