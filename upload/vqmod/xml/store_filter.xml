@@ -45,7 +45,7 @@
 		  'price'      => $result['price'],
 		  ]]></search>
       <add><![CDATA[
-		  'store'      => $result['store'],
+		  'store'      => $result['store_id'],
 		  ]]></add>
     </operation>
   </file>
@@ -121,6 +121,7 @@
       <add><![CDATA[
 		 $this->load->model('setting/store');
 		 $this->data['stores'] = $this->model_setting_store->getStores();
+
 		 if (isset($this->request->post['product_store'])) {
 			$this->data['product_store'] = $this->request->post['product_store'];
 		} elseif (isset($this->request->get['product_id'])) {
@@ -132,7 +133,32 @@
     </operation>
   </file>
   
-  <file name="admin/view//template/catalog/product_list.tpl">        
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  $this->template = 'catalog/product_list.tpl';
+		  ]]></search>
+      <add><![CDATA[
+		 $this->load->model('setting/store');
+		 $this->data['stores'] = $this->model_setting_store->getStores();
+
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/model/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  		$sql = "SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
+		  ]]></search>
+      <add><![CDATA[
+		
+			$sql .= " LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)";			
+		
+		  ]]></add>
+    </operation>
+  </file>
+  
+  <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="before"><![CDATA[
 		  <td class="right"><?php echo $column_action; ?></td>
@@ -146,7 +172,7 @@
 		  ]]></add>
     </operation>
   </file>
-  <file name="admin/view//template/catalog/product_list.tpl">        
+  <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="before"><![CDATA[
 		 <td align="right"><a onclick="filter();" class="button"><?php echo $button_filter; ?></a></td>
@@ -169,7 +195,7 @@
 		  ]]></add>
     </operation>
   </file>
-  <file name="admin/view//template/catalog/product_list.tpl">        
+  <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="after"><![CDATA[
 		 <td class="left"><?php echo $product['status']; ?></td>
