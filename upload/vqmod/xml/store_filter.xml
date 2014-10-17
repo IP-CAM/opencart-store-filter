@@ -11,7 +11,7 @@
 		  public function index() {
 		  ]]></search>
       <add><![CDATA[
-		  $this->language->load('module/store_filter');
+		  $this->load->language('module/store_filter');
 		  ]]></add>
     </operation>
   </file>
@@ -28,6 +28,7 @@
 		}
 		  ]]></add>
     </operation>
+  
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
@@ -49,13 +50,26 @@
 		  ]]></add>
     </operation>
   </file>
+  
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+if (is_file(DIR_IMAGE . $result['image'])) {
+		  ]]></search>
+      <add><![CDATA[
+		  if(!isset($result['store_id'])){
+          $result['store_id'] = "Default";
+                    }
+		  ]]></add>
+    </operation>
+  </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-		  $this->data['column_status'] = $this->language->get('column_status');
+		  $data['column_status'] = $this->language->get('column_status');
 		  ]]></search>
       <add><![CDATA[
-		  $this->data['column_store'] = $this->language->get('column_store');
+		  $data['column_store'] = $this->language->get('column_store');
 		  ]]></add>
     </operation>
   </file>
@@ -86,30 +100,30 @@
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-		  $this->data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_order' . $url, 'SSL');
+		  $data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_order' . $url, 'SSL');
 		  ]]></search>
       <add><![CDATA[
-		  $this->data['sort_store'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_store' . $url, 'SSL');
+		  $data['sort_store'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_store' . $url, 'SSL');
 		  ]]></add>
     </operation>
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-		  $this->data['filter_status'] = $filter_status;
+		  $data['filter_status'] = $filter_status;
 		  ]]></search>
       <add><![CDATA[
-		  $this->data['filter_store'] = $filter_store;
+		  $data['filter_store'] = $filter_store;
 		  ]]></add>
     </operation>
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-		  $this->data['entry_description'] = $this->language->get('entry_description');
+		  $data['entry_status'] = $this->language->get('entry_status');
 		  ]]></search>
       <add><![CDATA[
-		 $this->data['entry_store'] = $this->language->get('entry_store');
+		 $data['entry_store'] = $this->language->get('entry_store');
 		  ]]></add>
     </operation>
   </file>
@@ -120,7 +134,7 @@
 		  ]]></search>
       <add><![CDATA[
 		 $this->load->model('setting/store');
-		 $this->data['stores'] = $this->model_setting_store->getStores();
+		 $data['stores'] = $this->model_setting_store->getStores();
 
 		 if (isset($this->request->post['product_store'])) {
 			$this->data['product_store'] = $this->request->post['product_store'];
@@ -135,12 +149,12 @@
   
   <file name="admin/controller/catalog/product.php">        
     <operation>
-      <search position="before"><![CDATA[
-		  $this->template = 'catalog/product_list.tpl';
+      <search position="before"><![CDATA[ 
+            $this->response->setOutput($this->load->view('catalog/product_list.tpl', $data));
 		  ]]></search>
       <add><![CDATA[
 		 $this->load->model('setting/store');
-		 $this->data['stores'] = $this->model_setting_store->getStores();
+		 $data['stores'] = $this->model_setting_store->getStores();
 
 		  ]]></add>
     </operation>
@@ -148,11 +162,11 @@
   <file name="admin/model/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-		  		$sql = "SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
-		  ]]></search>
+		  	$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id) LEFT JOIN " . DB_PREFIX . "product_to_category p2c ON (p.product_id = p2c.product_id) WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND p2c.category_id = '" . (int)$category_id . "' ORDER BY pd.name ASC");
+]]></search>
       <add><![CDATA[
 		
-			$sql .= " LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)";			
+			$query .= " LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)";			
 		
 		  ]]></add>
     </operation>
@@ -161,10 +175,10 @@
   <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="before"><![CDATA[
-		  <td class="right"><?php echo $column_action; ?></td>
+		   <td class="text-right"><?php echo $column_action; ?></td>
 		  ]]></search>
       <add><![CDATA[
-		 <td class="left"><?php if ($sort == 'p.store') { ?>
+		 <td class="text-left"><?php if ($sort == 'p.store') { ?>
                 <a href="<?php echo $sort_store; ?>" class="<?php echo strtolower($order); ?>"><?php echo $column_store; ?></a>
                 <?php } else { ?>
                 <a href="<?php echo $sort_store; ?>"><?php echo $column_store; ?></a>
@@ -175,11 +189,15 @@
   <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="before"><![CDATA[
-		 <td align="right"><a onclick="filter();" class="button"><?php echo $button_filter; ?></a></td>
+		               <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+
 		  ]]></search>
-      <add><![CDATA[
-		<td><select name="filter_store">
-                  <option value="*">*</option>
+      <add><![CDATA[</div>
+		    <div class="col-sm-4">
+              <div class="form-group">
+                <label class="control-label" for="input-store"><?php echo $entry_store; ?></label>
+                <select name="filter_store" id="input-store" class="form-control">
+              <option value="*">Default</option>
                   <?php 
 					  foreach ($stores as $store) {
 						  if ($filter_store && $filter_store == $store['store_id']) { 
@@ -191,17 +209,20 @@
 					  <option value="<?php echo $store['store_id']; ?>"><?php echo $store['name']; ?></option>
                   <?php }
 						} ?>
-                </select></td>
+                </select>
+              </div>
+              </div>
 		  ]]></add>
     </operation>
   </file>
   <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="after"><![CDATA[
-		 <td class="left"><?php echo $product['status']; ?></td>
+                  <td class="text-left"><?php echo $product['status']; ?></td>
+
 		  ]]></search>
       <add><![CDATA[
-		<td class="left"><?php echo $product['store']; ?></td>
+		<td class="text-left"><?php echo $product['store']; ?></td>
 		  ]]></add>
     </operation>
   </file>
