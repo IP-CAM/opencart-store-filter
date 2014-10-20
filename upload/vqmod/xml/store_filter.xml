@@ -23,6 +23,9 @@
       <add><![CDATA[
 		  if (isset($this->request->get['filter_store'])) {
 			$filter_store = $this->request->get['filter_store'];
+			if(isset($url)){
+			$url .= '&filter_store=' . $this->request->get['filter_store'];
+			}
 		} else {
 			$filter_store = null;
 		}
@@ -148,12 +151,39 @@
   <file name="admin/model/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
+		  				$sql = "SELECT COUNT(DISTINCT p.product_id) AS total FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
+		  ]]></search>
+      <add><![CDATA[
+		
+			$sql .= " LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)";			
+		
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/model/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
 		  		$sql = "SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
 		  ]]></search>
       <add><![CDATA[
 		
 			$sql .= " LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)";			
 		
+		  ]]></add>
+    </operation>
+  </file>
+  
+  <file name="admin/model/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  		if (isset($data['filter_status']) && !is_null($data['filter_status'])) {
+		  ]]></search>
+      <add><![CDATA[
+		if (isset($data['filter_store'])) {
+			
+				$sql .= " AND p2s.store_id = '".$data['filter_store']."'";
+				
+		}
 		  ]]></add>
     </operation>
   </file>
@@ -181,6 +211,7 @@
 		<td><select name="filter_store">
                   <option value="*">*</option>
                   <?php 
+                
 					  foreach ($stores as $store) {
 						  if ($filter_store && $filter_store == $store['store_id']) { 
 						  ?>
@@ -202,6 +233,20 @@
 		  ]]></search>
       <add><![CDATA[
 		<td class="left"><?php echo $product['store']; ?></td>
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/view/template/catalog/product_list.tpl">        
+    <operation>
+      <search position="after"><![CDATA[
+		 var filter_status = $('select[name=\'filter_status\']').attr('value');
+		  ]]></search>
+      <add><![CDATA[
+		var filter_store = $('select[name=\'filter_store\']').attr('value');
+	
+	if (filter_store != '*') {
+		url += '&filter_store=' + encodeURIComponent(filter_store);
+	}	
 		  ]]></add>
     </operation>
   </file>
