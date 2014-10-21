@@ -238,8 +238,6 @@
   foreach ($stores as $store) {
 	 if ((int)$product['store'] == (int)$store['store_id']) { 
           echo $store['name'];
-          }else{ 
-          echo "Default";
           }
           }
 	?>
