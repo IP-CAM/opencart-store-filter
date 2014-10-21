@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modification>
   <id>Multi Shop Product Filter</id>
-  <version>1.0</version>
+  <version>2.0</version>
   <vqmver>2.2.1</vqmver>
   <author>Jason Clark (mithereal@gmail.com)</author>
   
@@ -17,8 +17,8 @@
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
-      <search position="before"><![CDATA[
-		  if (isset($this->request->get['sort'])) {
+      <search position="after"><![CDATA[
+		  protected function getList() {
 		  ]]></search>
       <add><![CDATA[
 		  if (isset($this->request->get['filter_store'])) {
@@ -88,7 +88,8 @@ if (is_file(DIR_IMAGE . $result['image'])) {
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="before"><![CDATA[
-		  if (isset($this->request->get['order'])) {
+				$results = $this->model_catalog_product->getProducts($filter_data);
+
 		  ]]></search>
       <add><![CDATA[
 		  if (isset($this->request->get['store'])) {
@@ -159,19 +160,43 @@ if (is_file(DIR_IMAGE . $result['image'])) {
 		  ]]></add>
     </operation>
   </file>
-  <file name="admin/model/catalog/product.php">        
-    <operation>
-      <search position="after"><![CDATA[
-		  	$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id) LEFT JOIN " . DB_PREFIX . "product_to_category p2c ON (p.product_id = p2c.product_id) WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "' AND p2c.category_id = '" . (int)$category_id . "' ORDER BY pd.name ASC");
+
+  <file name="admin/model/catalog/product.php">
+<operation>
+<search position="after"><![CDATA[
+$sql = "SELECT COUNT(DISTINCT p.product_id) AS total FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)";
 ]]></search>
-      <add><![CDATA[
-		
-			$query .= " LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)";			
-		
-		  ]]></add>
-    </operation>
-  </file>
-  
+<add><![CDATA[
+$sql .= " LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id)";
+]]></add>
+</operation>
+</file>
+
+<file name="admin/model/catalog/product.php">
+<operation>
+<search position="replace"><![CDATA[
+$sql = "SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id) WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+]]></search>
+<add><![CDATA[
+$sql = "SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id)  LEFT JOIN " . DB_PREFIX . "product_to_store p2s ON (p.product_id = p2s.product_id) WHERE pd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+        var_dump($sql);
+]]></add>
+</operation>
+</file>
+
+ <file name="admin/model/catalog/product.php">
+<operation>
+<search position="before"><![CDATA[
+if (isset($data['filter_status']) && $data['filter_status'] !== null) {
+]]></search>
+<add><![CDATA[
+if (isset($data['filter_store'])) {
+$sql .= " AND p2s.store_id = '".$data['filter_store']."'";
+}
+]]></add>
+</operation>
+</file>
+
   <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="before"><![CDATA[
@@ -223,6 +248,21 @@ if (is_file(DIR_IMAGE . $result['image'])) {
 		  ]]></search>
       <add><![CDATA[
 		<td class="text-left"><?php echo $product['store']; ?></td>
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/view/template/catalog/product_list.tpl">        
+    <operation>
+      <search position="before"><![CDATA[
+                  var filter_status = $('select[name=\'filter_status\']').val();
+
+		  ]]></search>
+      <add><![CDATA[
+		var filter_store = $('select[name=\'filter_store\']').val();
+
+	if(filter_store != '*') {
+		url += '&filter_store=' + encodeURIComponent(filter_store);
+	}
 		  ]]></add>
     </operation>
   </file>
