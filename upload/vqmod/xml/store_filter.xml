@@ -226,16 +226,28 @@
 		  ]]></add>
     </operation>
   </file>
-  <file name="admin/view/template/catalog/product_list.tpl">        
+  
+    <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="after"><![CDATA[
-		 <td class="left"><?php echo $product['status']; ?></td>
+                  <td class="left"><?php echo $product['status']; ?></td>
+
 		  ]]></search>
       <add><![CDATA[
-		<td class="left"><?php echo $product['store']; ?></td>
+		<td class=left"><?php 
+  foreach ($stores as $store) {
+	 if ((int)$product['store'] == (int)$store['store_id']) { 
+          echo $store['name'];
+          }else{ 
+          echo "Default";
+          }
+          }
+	?>
+ </td>
 		  ]]></add>
     </operation>
   </file>
+  
   <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="after"><![CDATA[
