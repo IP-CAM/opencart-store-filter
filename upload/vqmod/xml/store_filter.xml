@@ -164,11 +164,11 @@ if (is_file(DIR_IMAGE . $result['image'])) {
 		 $data['stores'] = $this->model_setting_store->getStores();
 
 		 if (isset($this->request->post['product_store'])) {
-			$this->data['product_store'] = $this->request->post['product_store'];
+			$data['product_store'] = $this->request->post['product_store'];
 		} elseif (isset($this->request->get['product_id'])) {
-			$this->data['product_store'] = $this->model_catalog_product->getProductStores($this->request->get['product_id']);
+			$data['product_store'] = $this->model_catalog_product->getProductStores($this->request->get['product_id']);
 		} else {
-			$this->data['product_store'] = array(0);
+			$data['product_store'] = array(0);
 		}	
 		  ]]></add>
     </operation>
