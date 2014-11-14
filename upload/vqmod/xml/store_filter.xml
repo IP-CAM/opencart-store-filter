@@ -5,6 +5,45 @@
   <vqmver>2.2.1</vqmver>
   <author>Jason Clark (mithereal@gmail.com)</author>
   
+  <file name="admin/model/setting/setting.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  	public function deleteSetting($group, $store_id = 0) {
+		  ]]></search>
+      <add><![CDATA[
+		  	public function getSettingbyKey($group, $key, $store_id = 0) {
+		$data = array();
+		$sql="SELECT * FROM " . DB_PREFIX . "setting WHERE `key` = '" . $key . "' AND `store_id` = '" . (int)$store_id . "' AND `group` = '" . $this->db->escape($group) . "'";
+		$query = $this->db->query($sql);
+foreach ($query->rows as $result) {
+			if (!$result['serialized']) {
+				$data[$result['store_id']] = $result['value'];
+			} else {
+				$data[$result['store_id']] = unserialize($result['value']);
+			}
+		}
+		return $data;
+		
+		
+	}
+		  ]]></add>
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="after"><![CDATA[
+		  protected function getList() {
+		  ]]></search>
+      <add><![CDATA[
+		  if (isset($this->request->get['filter_store'])) {
+			$filter_store = $this->request->get['filter_store'];
+		} else {
+			$filter_store = null;
+		}
+		  ]]></add>
+    </operation>
+  
+  </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
@@ -141,10 +180,16 @@ if (is_file(DIR_IMAGE . $result['image'])) {
             $this->response->setOutput($this->load->view('catalog/product_list.tpl', $data));
 		  ]]></search>
       <add><![CDATA[
+		 $this->load->model('setting/setting');
 		 $this->load->model('setting/store');
+		 $default_store=$this->model_setting_setting->getSettingbyKey('config','config_name');
+		 $default_store['name']=$default_store[0];
+		 $default_store['store_id']=0;
 		 $data['stores'] = $this->model_setting_store->getStores();
-
+		 array_unshift($data['stores'] , $default_store);
+	
 		  ]]></add>
+		 
     </operation>
   </file>
 
@@ -238,8 +283,6 @@ $sql .= " AND p2s.store_id = '".$data['filter_store']."'";
   foreach ($stores as $store) {
 	 if ((int)$product['store'] == (int)$store['store_id']) { 
           echo $store['name'];
-          }else{ 
-          echo "Default";
           }
           }
 	?>
