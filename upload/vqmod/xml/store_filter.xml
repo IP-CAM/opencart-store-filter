@@ -5,6 +5,42 @@
   <vqmver>2.2.1</vqmver>
   <author>Jason Clark (mithereal@gmail.com)</author>
   
+  <file name="admin/model/setting/setting.php">        
+    <operation>
+      <search position="before"><![CDATA[
+		  	public function deleteSetting($group, $store_id = 0) {
+		  ]]></search>
+      <add><![CDATA[
+	public function getSettingbyKey($group, $key, $store_id = null) {
+	
+		$data = array();
+		
+		$sql= "SELECT * FROM " . DB_PREFIX . "setting WHERE `key` = '" . $key . "'"; 
+		
+		if(isset($store_id)){
+		$sql .= " AND `store_id` = '" . (int)$store_id . "'";
+		}
+		
+		$sql .= " AND `group` = '" . $this->db->escape($group). "'";
+		 
+		$query = $this->db->query($sql);
+
+		foreach ($query->rows as $result) {
+		
+			if (!$result['serialized']) {
+				$data[$result['store_id']] = $result['value'];
+			} else {
+				$data[$result['store_id']] = unserialize($result['value']);
+			}
+		}
+		
+		return $data;
+		
+	}
+		  ]]></add>
+    </operation>
+  </file>
+  
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
@@ -142,8 +178,13 @@
 		  $this->template = 'catalog/product_list.tpl';
 		  ]]></search>
       <add><![CDATA[
+		 $this->load->model('setting/setting');
 		 $this->load->model('setting/store');
 		 $this->data['stores'] = $this->model_setting_store->getStores();
+		 $default_store=$this->model_setting_setting->getSettingbyKey('config','config_name',0);
+		 $default_store['name']=$default_store[0];
+		 $default_store['store_id']=0;
+		 array_unshift($this->data['stores'] , $default_store);
 
 		  ]]></add>
     </operation>
@@ -209,7 +250,7 @@
 		  ]]></search>
       <add><![CDATA[
 		<td><select name="filter_store">
-                  <option value="*">*</option>
+                  <option value="*">ALL</option>
                   <?php 
                 
 					  foreach ($stores as $store) {
