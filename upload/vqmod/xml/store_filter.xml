@@ -5,42 +5,6 @@
   <vqmver>2.2.1</vqmver>
   <author>Jason Clark (mithereal@gmail.com)</author>
   
-  <file name="admin/model/setting/setting.php">        
-    <operation>
-      <search position="before"><![CDATA[
-		  	public function deleteSetting($group, $store_id = 0) {
-		  ]]></search>
-      <add><![CDATA[
-	public function getSettingbyKey($group, $key, $store_id = null) {
-	
-		$data = array();
-		
-		$sql= "SELECT * FROM " . DB_PREFIX . "setting WHERE `key` = '" . $key . "'"; 
-		
-		if(isset($store_id)){
-		$sql .= " AND `store_id` = '" . (int)$store_id . "'";
-		}
-		
-		$sql .= " AND `group` = '" . $this->db->escape($group). "'";
-		 
-		$query = $this->db->query($sql);
-
-		foreach ($query->rows as $result) {
-		
-			if (!$result['serialized']) {
-				$data[$result['store_id']] = $result['value'];
-			} else {
-				$data[$result['store_id']] = unserialize($result['value']);
-			}
-		}
-		
-		return $data;
-		
-	}
-		  ]]></add>
-    </operation>
-  </file>
-  
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
@@ -84,7 +48,7 @@
 		  'price'      => $result['price'],
 		  ]]></search>
       <add><![CDATA[
-		  'store'      => $result['store_id'],
+		  'stores'	 => $stores,
 		  ]]></add>
     </operation>
   </file>
@@ -178,17 +142,23 @@
 		  $this->template = 'catalog/product_list.tpl';
 		  ]]></search>
       <add><![CDATA[
-		 $this->load->model('setting/setting');
 		 $this->load->model('setting/store');
-		 $this->data['stores'] = $this->model_setting_store->getStores();
-		 $default_store=$this->model_setting_setting->getSettingbyKey('config','config_name',0);
-		 $default_store['name']=$default_store[0];
-		 $default_store['store_id']=0;
-		 array_unshift($this->data['stores'] , $default_store);
+		 $this->data['stores'] = $this->model_setting_store->getAllStores();
 
 		  ]]></add>
     </operation>
   </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="before"><![CDATA[
+			$this->data['products'][] = array(
+		  ]]></search>
+      <add><![CDATA[
+			$stores = $this->model_catalog_product->getProductStores($result['product_id']);
+			]]></add>
+    </operation>
+  </file>
+  
   <file name="admin/model/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
@@ -213,7 +183,6 @@
 		  ]]></add>
     </operation>
   </file>
-  
   <file name="admin/model/catalog/product.php">        
     <operation>
       <search position="before"><![CDATA[
@@ -250,7 +219,7 @@
 		  ]]></search>
       <add><![CDATA[
 		<td><select name="filter_store">
-                  <option value="*">ALL</option>
+                  <option value="*">*</option>
                   <?php 
                 
 					  foreach ($stores as $store) {
@@ -276,11 +245,15 @@
 		  ]]></search>
       <add><![CDATA[
 		<td class=left"><?php 
-  foreach ($stores as $store) {
-	 if ((int)$product['store'] == (int)$store['store_id']) { 
-          echo $store['name'];
-          }
-          }
+		foreach ($stores as $store) {
+			#if ((int)$product['store'] == (int)$store['store_id']) { 
+			#	echo $store['name'];
+			#}
+			
+			if (in_array((int)$store['store_id'], $product['stores'])) {
+				echo $store['name'] .'<br />';
+			}
+		}
 	?>
  </td>
 		  ]]></add>
@@ -299,6 +272,39 @@
 		url += '&filter_store=' + encodeURIComponent(filter_store);
 	}	
 		  ]]></add>
+    </operation>
+  </file>
+  
+  <file name="admin/model/setting/store.php">        
+    <operation>
+      <search position="before"><![CDATA[public function getStores($data = array()) {]]></search>
+      <add><![CDATA[
+	
+	public function getAllStores($data = array()) {
+		$store_data = $this->cache->get('stores');
+
+		if (!$store_data) {
+			$query = $this->db->query("SELECT `value`  FROM `" . DB_PREFIX . "setting` WHERE `store_id`=0 AND `key`='config_name'");
+
+			$main_store_data = $query->row;
+			
+			$main_store[] = array("store_id"=>0,
+								"name"=>$main_store_data['value'],
+								"url"=>HTTP_CATALOG,
+								"ssl"=>HTTPS_CATALOG);
+
+			$query = $this->db->query("SELECT * FROM " . DB_PREFIX . "store ORDER BY url");
+
+			$stores_data = $query->rows;
+			
+			$store_data = array_merge($main_store, $stores_data);
+
+			$this->cache->set('stores', $store_data);
+		}
+
+		return $store_data;
+	}
+	]]></add>
     </operation>
   </file>
 
