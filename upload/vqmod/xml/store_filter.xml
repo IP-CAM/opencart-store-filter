@@ -8,12 +8,13 @@
   <file name="admin/model/setting/setting.php">        
     <operation>
       <search position="before"><![CDATA[
-		  	public function deleteSetting($group, $store_id = 0) {
+		  	public function deleteSetting($code, $store_id = 0) {
 		  ]]></search>
       <add><![CDATA[
-		  	public function getSettingbyKey($group, $key, $store_id = 0) {
+		  	public function getSettingbyKey($code, $key, $store_id = 0) {
 		$data = array();
-		$sql="SELECT * FROM " . DB_PREFIX . "setting WHERE `key` = '" . $key . "' AND `store_id` = '" . (int)$store_id . "' AND `group` = '" . $this->db->escape($group) . "'";
+		$sql="SELECT * FROM " . DB_PREFIX . "setting WHERE `key` = '" . $key . "' AND `store_id` = '" . (int)$store_id . "' AND `code` = '" . $this->db->escape($code) . "'";
+          
 		$query = $this->db->query($sql);
 foreach ($query->rows as $result) {
 			if (!$result['serialized']) {
@@ -71,18 +72,18 @@ foreach ($query->rows as $result) {
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
-      <search position="after"><![CDATA[
-		  'filter_status'   => $filter_status,
+      <search position="before"><![CDATA[
+		 $product_total = $this->model_catalog_product->getTotalProducts($filter_data);
 		  ]]></search>
       <add><![CDATA[
-		  'filter_store'   => $filter_store,
+		  $filter_data['filter_store']   = $filter_store;
 		  ]]></add>
     </operation>
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-		  'price'      => $result['price'],
+		  $data['products'][] = array(
 		  ]]></search>
       <add><![CDATA[
 		  'store'      => $result['store_id'],
@@ -183,10 +184,28 @@ if (is_file(DIR_IMAGE . $result['image'])) {
 		 $this->load->model('setting/setting');
 		 $this->load->model('setting/store');
 		 $default_store=$this->model_setting_setting->getSettingbyKey('config','config_name');
+        
 		 $default_store['name']=$default_store[0];
 		 $default_store['store_id']=0;
 		 $data['stores'] = $this->model_setting_store->getStores();
 		 array_unshift($data['stores'] , $default_store);
+	
+		  ]]></add>
+		 
+    </operation>
+  </file>
+  <file name="admin/controller/catalog/product.php">        
+    <operation>
+      <search position="replace"><![CDATA[ 
+          $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}', 'SSL');
+		  ]]></search>
+      <add><![CDATA[
+
+		if (isset($this->request->get['filter_store'])) {
+                           $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}'.'&filter_store='.$this->request->get['filter_store'], 'SSL');
+			}else{
+                            $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}', 'SSL');
+                       }
 	
 		  ]]></add>
 		 
@@ -218,7 +237,7 @@ $sql = "SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "prod
  <file name="admin/model/catalog/product.php">
 <operation>
 <search position="before"><![CDATA[
-if (isset($data['filter_status']) && $data['filter_status'] !== null) {
+if (isset($data['filter_status']) && !is_null($data['filter_status'])) {
 ]]></search>
 <add><![CDATA[
 if (isset($data['filter_store'])) {
