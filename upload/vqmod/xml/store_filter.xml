@@ -128,10 +128,11 @@ if (is_file(DIR_IMAGE . $result['image'])) {
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-		  $data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_order' . $url, 'SSL');
+$data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_order' . $url, true);
 		  ]]></search>
       <add><![CDATA[
-		  $data['sort_store'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_store' . $url, 'SSL');
+      $data['sort_store'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_store' . $url, true);
+
 		  ]]></add>
     </operation>
   </file>
@@ -178,7 +179,7 @@ if (is_file(DIR_IMAGE . $result['image'])) {
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="before"><![CDATA[ 
-            $this->response->setOutput($this->load->view('catalog/product_list.tpl', $data));
+           $this->response->setOutput($this->load->view('catalog/product_list', $data));
 		  ]]></search>
       <add><![CDATA[
 		 $this->load->model('setting/setting');
@@ -197,14 +198,14 @@ if (is_file(DIR_IMAGE . $result['image'])) {
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="replace"><![CDATA[ 
-          $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}', 'SSL');
+          $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}', true);
 		  ]]></search>
       <add><![CDATA[
 
 		if (isset($this->request->get['filter_store'])) {
                            $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}'.'&filter_store='.$this->request->get['filter_store'], 'SSL');
 			}else{
-                            $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}', 'SSL');
+                            $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}', true);
                        }
 	
 		  ]]></add>
