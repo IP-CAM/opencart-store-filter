@@ -1,7 +1,7 @@
-Filter By Store 2.0
+Filter By Store 3.0
 =====================
 
-Filter By Store for Opencart 2.0 adds a store filter on products list screen.
+Filter By Store for Opencart 3.0 adds a store filter on products list screen.
 
 
 Summary

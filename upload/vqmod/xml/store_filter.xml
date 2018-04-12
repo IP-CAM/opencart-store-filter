@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <modification>
   <id>Multi Shop Product Filter</id>
-  <version>2.0</version>
+  <version>3.0</version>
   <vqmver>2.2.1</vqmver>
   <author>Jason Clark (mithereal@gmail.com)</author>
   
@@ -105,8 +105,8 @@ if (is_file(DIR_IMAGE . $result['image'])) {
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
-      <search position="after"><![CDATA[
-		  $data['column_status'] = $this->language->get('column_status');
+      <search position="before"><![CDATA[
+		  $data['filter_status'] = $filter_status;
 		  ]]></search>
       <add><![CDATA[
 		  $data['column_store'] = $this->language->get('column_store');
@@ -128,10 +128,10 @@ if (is_file(DIR_IMAGE . $result['image'])) {
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="after"><![CDATA[
-$data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_order' . $url, true);
+		  $data['sort_order'] = $this->url->link('catalog/product', 'user_token=' . $this->session->data['user_token'] . '&sort=p.sort_order' . $url, true);
 		  ]]></search>
       <add><![CDATA[
-      $data['sort_store'] = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . '&sort=p.sort_store' . $url, true);
+      $data['sort_store'] = $this->url->link('catalog/product', 'token=' . $this->session->data['user_token'] . '&sort=p.sort_store' . $url, true);
 
 		  ]]></add>
     </operation>
@@ -148,8 +148,8 @@ $data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->sess
   </file>
   <file name="admin/controller/catalog/product.php">        
     <operation>
-      <search position="after"><![CDATA[
-		  $data['entry_status'] = $this->language->get('entry_status');
+      <search position="before"><![CDATA[
+		  $data['filter_status'] = $filter_status;
 		  ]]></search>
       <add><![CDATA[
 		 $data['entry_store'] = $this->language->get('entry_store');
@@ -159,7 +159,7 @@ $data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->sess
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="before"><![CDATA[
-		  if (isset($this->request->post['keyword'])) {
+		  if (!empty($keyword)) {
 		  ]]></search>
       <add><![CDATA[
 		 $this->load->model('setting/store');
@@ -198,7 +198,7 @@ $data['sort_order'] = $this->url->link('catalog/product', 'token=' . $this->sess
   <file name="admin/controller/catalog/product.php">        
     <operation>
       <search position="replace"><![CDATA[ 
-          $pagination->url = $this->url->link('catalog/product', 'token=' . $this->session->data['token'] . $url . '&page={page}', true);
+          $pagination->url = $this->url->link('catalog/product', 'user_token=' . $this->session->data['user_token'] . $url . '&page={page}', true);
 		  ]]></search>
       <add><![CDATA[
 
@@ -238,7 +238,7 @@ $sql = "SELECT * FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "prod
  <file name="admin/model/catalog/product.php">
 <operation>
 <search position="before"><![CDATA[
-if (isset($data['filter_status']) && !is_null($data['filter_status'])) {
+if (isset($data['filter_status']) && $data['filter_status'] !== '') {
 ]]></search>
 <add><![CDATA[
 if (isset($data['filter_store'])) {
@@ -248,43 +248,45 @@ $sql .= " AND p2s.store_id = '".$data['filter_store']."'";
 </operation>
 </file>
 
-  <file name="admin/view/template/catalog/product_list.tpl">        
+  <file name="admin/view/template/catalog/product_list.twig">        
     <operation>
       <search position="before"><![CDATA[
-		   <td class="text-right"><?php echo $column_action; ?></td>
+		   <td class="text-right">{{ column_action }}</td>
 		  ]]></search>
       <add><![CDATA[
-		 <td class="text-left"><?php if ($sort == 'p.store') { ?>
-                <a href="<?php echo $sort_store; ?>" class="<?php echo strtolower($order); ?>"><?php echo $column_store; ?></a>
-                <?php } else { ?>
-                <a href="<?php echo $sort_store; ?>"><?php echo $column_store; ?></a>
-                <?php } ?></td>
+		 <td class="text-left">{% if sort == 'p.store' %}
+                <a href="{{ sort_store }}" class="{{ order) }}">{{ column_store }}</a>
+                {% else %}
+                <a href="{{ sort_store }}">{{ column_store }}</a>
+                {% endif %}
+                </td>
 		  ]]></add>
     </operation>
   </file>
   <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="before"><![CDATA[
-		               <button type="button" id="button-filter" class="btn btn-primary pull-right"><i class="fa fa-search"></i> <?php echo $button_filter; ?></button>
+              <button type="button" id="button-filter" class="btn btn-default"><i class="fa fa-filter"></i> {{ button_filter }}</button>
 
 		  ]]></search>
       <add><![CDATA[</div>
 		    <div class="col-sm-4">
               <div class="form-group">
-                <label class="control-label" for="input-store"><?php echo $entry_store; ?></label>
+                <label class="control-label" for="input-store">{{ entry_store }}</label>
                 <select name="filter_store" id="input-store" class="form-control">
               <option value="*">All</option>
-                  <?php 
-					  foreach ($stores as $store) {
-						  if ($filter_store && $filter_store == $store['store_id']) { 
-						  ?>
-						  <option value="<?php echo $store['store_id']; ?>" selected="selected"><?php echo $store['name']; ?></option>
-					<?php
-					  }else{
-					  ?>
-					  <option value="<?php echo $store['store_id']; ?>"><?php echo $store['name']; ?></option>
-                  <?php }
-						} ?>
+                  {% for store in stores %} 
+                  
+                  {% if filter_store && filter_store == store.store_id %}
+					  
+						  <option value="{{ store.store_id }}" selected="selected">{{ store.name }}</option>
+					
+					  {% else %} 
+					 
+					  <option value="{{ store.store_id }}">{{ store.name }}</option>
+					  {% endif %} 
+					  {% endfor %} 
+  
                 </select>
               </div>
               </div>
@@ -295,17 +297,16 @@ $sql .= " AND p2s.store_id = '".$data['filter_store']."'";
   <file name="admin/view/template/catalog/product_list.tpl">        
     <operation>
       <search position="after"><![CDATA[
-                  <td class="text-left"><?php echo $product['status']; ?></td>
+                  <td class="text-left">{{ product.status }}</td>
 
 		  ]]></search>
       <add><![CDATA[
-		<td class="text-left"><?php 
-  foreach ($stores as $store) {
-	 if ((int)$product['store'] == (int)$store['store_id']) { 
-          echo $store['name'];
-          }
-          }
-	?>
+		<td class="text-left">
+		{% for store in stores %} 
+		{% if filter_store && filter_store == store.store_id %}
+		{ store.name }
+		{% endif %}
+	{% endfor %} 
  </td>
 		  ]]></add>
     </operation>
