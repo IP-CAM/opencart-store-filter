@@ -263,7 +263,7 @@ $sql .= " AND p2s.store_id = '".$data['filter_store']."'";
 		  ]]></add>
     </operation>
   </file>
-  <file name="admin/view/template/catalog/product_list.tpl">        
+  <file name="admin/view/template/catalog/product_list.twig">        
     <operation>
       <search position="before"><![CDATA[
               <button type="button" id="button-filter" class="btn btn-default"><i class="fa fa-filter"></i> {{ button_filter }}</button>
@@ -294,7 +294,7 @@ $sql .= " AND p2s.store_id = '".$data['filter_store']."'";
     </operation>
   </file>
   
-  <file name="admin/view/template/catalog/product_list.tpl">        
+  <file name="admin/view/template/catalog/product_list.twig">        
     <operation>
       <search position="after"><![CDATA[
                   <td class="text-left">{{ product.status }}</td>
@@ -312,7 +312,7 @@ $sql .= " AND p2s.store_id = '".$data['filter_store']."'";
     </operation>
   </file>
   
-  <file name="admin/view/template/catalog/product_list.tpl">        
+  <file name="admin/view/template/catalog/product_list.twig">        
     <operation>
       <search position="before"><![CDATA[
                   var filter_status = $('select[name=\'filter_status\']').val();
